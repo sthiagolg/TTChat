@@ -80,7 +80,7 @@ func main() {
 
 		case msg := <- msgs:
 			for conn := range aconns{
-
+				fmt.Println("Client has sent: "+msg)
 				conn.Write([]byte(msg))
 			}
 		case dconn := <- dconns:

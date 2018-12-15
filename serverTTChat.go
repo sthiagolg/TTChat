@@ -11,12 +11,15 @@ import "fmt"
 func main() {
 
 	var chat_server_name = "TCChat"
-	//var TCCHAT_WELCOME = "TCCHAT_WELCOME\tWelcome to the "+chat_server_name+"!\n"
+	var TCCHAT_WELCOME = "TCCHAT_WELCOME\tWelcome to the "+chat_server_name+"!\n"
 
 	/*
-	var TCCHAT_USERIN = "TCCHAT_USERIN\t",User.nickname"\n"
-	var TCHAT_USEROUT = "TCCHAT_USEROUT\t",User.nickname"\n"
-	var TCCHAT_BCAST = "TCCHAT_BCAST\t",User.nickname"\t",User.message,"\n"*/
+	var TCCHAT_USERIN = "TCCHAT_USERIN\t"+User.nickname+"\n"
+	var TCHAT_USEROUT = "TCCHAT_USEROUT\t"+User.nickname+"\n"
+	var TCCHAT_BCAST = "TCCHAT_BCAST\t"+User.nickname+"\t"+User.message+"\n"
+
+
+	*/
 
 
 	//var register = "TTCHAT_REGISTER"
@@ -40,6 +43,7 @@ func main() {
 	go func() {
 		for{
 			conn , err := ln.Accept()
+			conn.Write([]byte(TCCHAT_WELCOME + "\n"))
 			if err != nil {
 				log.Println(err.Error())
 			}
@@ -60,6 +64,7 @@ func main() {
 		select {
 		case conn := <- conns:
 			//conn.Write([]byte(TCCHAT_WELCOME + "\n"))
+			//msgs <- TCCHAT_WELCOME
 			aconns[conn] = i
 			i++
 
@@ -73,15 +78,17 @@ func main() {
 					}
 					//fmt.Print("Message Received:", string(m))
 					//conn.Write([]byte(m + "\n"))
-					msgs <- fmt.Sprintf("Client %v: %v",i,m)
+					//msgs <- fmt.Sprintf("Client %v: %v",i,m)
+					msgs <- m
 				}
 				dconns <-conn
 			}(conn,i)
 
 		case msg := <- msgs:
 			for conn := range aconns{
-				fmt.Println("Client has sent: "+msg)
 				conn.Write([]byte(msg))
+				fmt.Println("Client has sent :"+msg)
+
 			}
 		case dconn := <- dconns:
 			fmt.Printf("Client %v is gone \n", aconns[dconn])

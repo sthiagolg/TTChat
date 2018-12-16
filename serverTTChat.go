@@ -26,15 +26,16 @@ func main() {
 
 	type User struct {
 		nickname string
-		conn net.Conn
+		connection net.Conn
 		message string
 	}
 
-	aconns := make(map[net.Conn]int)
-	conns := make(chan net.Conn)
-	dconns := make(chan net.Conn)
+	aconns := make(map[User]int)
+	conns := make(chan User)
+	dconns := make(chan User)
 	msgs := make(chan string)
 	i := 0
+	//Users := make(chan[User])
 
 	fmt.Println("Launching server...", chat_server_name)
 
@@ -47,8 +48,11 @@ func main() {
 			if err != nil {
 				log.Println(err.Error())
 			}
-			fmt.Printf("Client %v has connected\n", i)
-			conns <- conn
+			rd := bufio.NewReader(conn)
+			name,err := rd.ReadString('\n')
+			user := User{nickname:name,connection:conn}
+			fmt.Printf( user.nickname+ " '-> has connected\n")
+			conns <- user
 
 		}
 	}()
@@ -67,9 +71,9 @@ func main() {
 			//msgs <- TCCHAT_WELCOME
 			aconns[conn] = i
 			i++
-
-			go func(conn net.Conn, i int) {
-				rd := bufio.NewReader(conn)
+			user := conn
+			go func(user User, i int) {
+				rd := bufio.NewReader(user.connection)
 
 				for {
 					m,err := rd.ReadString('\n')
@@ -78,20 +82,20 @@ func main() {
 					}
 					//fmt.Print("Message Received:", string(m))
 					//conn.Write([]byte(m + "\n"))
-					//msgs <- fmt.Sprintf("Client %v: %v",i,m)
-					msgs <- m
+					msgs <- fmt.Sprintf("%v '-> %v",user.nickname,m)
+					//msgs <- m
 				}
-				dconns <-conn
-			}(conn,i)
+				dconns <-user
+			}(user,i)
 
 		case msg := <- msgs:
-			for conn := range aconns{
-				conn.Write([]byte(msg))
-				fmt.Println("Client has sent :"+msg)
+			for user := range aconns{
+				user.connection.Write([]byte(msg))
+				fmt.Println(msg)
 
 			}
 		case dconn := <- dconns:
-			fmt.Printf("Client %v is gone \n", aconns[dconn])
+			fmt.Printf("%v '-> is gone \n", dconn.nickname)
 			delete(aconns,dconn)
 		}
 

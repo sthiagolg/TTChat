@@ -1,12 +1,13 @@
 package main
 
 import (
-	"bufio"
-	"log"
-	"net"
-	_ "strconv"
+"bufio"
+"log"
+"net"
+_ "strconv"
 )
 import "fmt"
+import _ "strings"
 
 func main() {
 
@@ -90,8 +91,13 @@ func main() {
 
 		case msg := <- msgs:
 			for user := range aconns{
+				/*text := string.Split(msg, "\t" )
+				commande := text[0]
+				reste := text[1]
+				fmt.Print(commande,reste)*/
+				
 				user.connection.Write([]byte(msg))
-				fmt.Println(msg)
+				fmt.Println(user.nickname+" : "+msg)
 
 			}
 		case dconn := <- dconns:
@@ -103,20 +109,16 @@ func main() {
 
 	//connection, error := listen.Accept()
 
+	/*func splitter(tcpIN string) (string,string) {
 
-
-	/*for {
-
-		message, _ := bufio.NewReader(connection).ReadString('\n')
-
-		fmt.Print("Message Received:", string(message))
-
-		newmessage := string(message)
-
-		connection.Write([]byte(newmessage + "\n"))
+		text := string.Split(tcpIN, "\t" )
+		commande := text[0]
+		reste := text[1]
+		return commande,reste
 
 	}*/
 
 
+	
 
 }
